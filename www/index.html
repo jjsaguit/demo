@@ -1,0 +1,2108 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>NUTRITION CLUB TOOLS</title>
+  <meta http-equiv='Content-Type' content='text/html; charset=utf-8' />
+  <meta name="viewport" content="width=device-width; initial-scale=1.0; maximum-scale=1.0; minimum-scale=1.0; user-scalable=no; target-densityDpi=device-dpi" />
+  <link rel="stylesheet" href="css/jq.css" />
+  <link rel="stylesheet" href="css/index.css" />
+  <!--link rel="stylesheet" href="css/video.css" /-->
+  <script src="js/jq111.js"></script>
+  <script src="js/jqm131.js"></script>
+  <script src="js/idealWeight.js"></script>
+  <script src="js/mealPlan.js"></script>
+  <script src="js/getBFI.js"></script>
+  <!--script src="js/video.js"></script-->
+  <script>
+    var init = false;
+    //defaults
+    var globalMagicNumber = 0;
+    var globalNCTime = 'a';
+    $(document).on('pagebeforeshow', '#landing', function(){  
+      if(init === false){
+        //console.log('here in init')
+        $.mobile.defaultPageTransition = 'none';
+        
+        //I personally use some other settings, such as:
+        //$.mobile.page.prototype.options.addBackBtn = true;
+        $.mobile.useFastClick  = false;
+
+        $('#genderSelect').bind( "change", function(event, ui) {
+          if($('#genderSelect').val() === 'M'){
+            $('#iconGender').attr('src', 'img/male.png');
+          }else{
+            $('#iconGender').attr('src', 'img/female.png');
+          }
+        });
+
+        $('#genderSelect2').bind( "change", function(event, ui) {
+          if($('#genderSelect2').val() === 'M'){
+            $('#iconGender2').attr('src', 'img/male.png');
+          }else{
+            $('#iconGender2').attr('src', 'img/female.png');
+          }
+        });
+
+        $('#calorieSelect').bind( "change", function(event, ui) {
+          console.log($('#calorieSelect').val());
+          globalMagicNumber = $('#calorieSelect').val();
+          getPlan(globalNCTime);
+        });
+
+        
+        init = true;
+      }  
+      
+    });
+
+    function toggleFullscreen(vid) {
+      if (document.fullScreen)
+              document.cancelFullScreen();
+      if (document.webkitIsFullScreen) {
+              document.webkitCancelFullScreen();
+      } else if (document.msIsFullScreen) {
+              document.msExitFullscreen();
+      } else if (document.mozIsFullScreen) {
+              document.mozCancelFullScreen();
+      }
+      else {
+      if (document.cancelFullScreen)
+      vid.requestFullscreen();
+      else if (document.webkitCancelFullScreen)
+      vid.webkitRequestFullScreen();
+      else if (document.msExitFullscreen)
+      vid.msRequestFullscreen();
+      else if (document.mozCancelFullScreen)
+      vid.mozRequestFullScreen();
+      }
+    }
+
+    //Calculate stuff
+    function toKgs(a){
+      return a/2.205;
+    }
+
+    function toLbs(a){
+      return a*2.205;
+    }
+
+    function round(a){
+      return Math.round(a * 100) / 100;
+    }
+
+    function goMain(){
+      $.mobile.changePage('#main');
+    }
+    function goMain2(){
+      $.mobile.changePage('#main2');
+    }
+    function goEvaluation(){
+      $.mobile.changePage('#evaluation');
+    }
+    //for evaluation
+    function goCalorie(){
+      $.mobile.changePage('#calorie');
+    }
+    function goRecommend(){
+      $.mobile.changePage('#recommend');
+    }
+    function goFat(){
+      $.mobile.changePage('#fat');
+    }
+    function goVisceral(){
+      $.mobile.changePage('#visceral');
+    }
+    function goWater(){
+      $.mobile.changePage('#water');
+    }
+    function goBMR(){
+      $.mobile.changePage('#bmr');
+    }
+    function goMuscle(){
+      $.mobile.changePage('#muscle');
+    }
+    function goMetabolic(){
+      $.mobile.changePage('#metabolic');
+    }
+    function goPhysique(){
+      $.mobile.changePage('#physique');
+    }
+    //end
+    function goMeal(){
+      $.mobile.changePage('#meal');
+    }
+    function goAbout(){
+      $.mobile.changePage('#about');
+    }
+    function goLanding(){
+      $.mobile.changePage('#landing');
+    }
+    function goFollowUp(){
+      $.mobile.changePage('#followup');
+    }
+    function goVideo(){
+      $.mobile.changePage('#video');
+    }
+    function copyTextToClipboard(text) {
+        var textArea = document.createElement("textarea");
+
+      //
+      // *** This styling is an extra step which is likely not required. ***
+      //
+      // Why is it here? To ensure:
+      // 1. the element is able to have focus and selection.
+      // 2. if element was to flash render it has minimal visual impact.
+      // 3. less flakyness with selection and copying which **might** occur if
+      //    the textarea element is not visible.
+      //
+      // The likelihood is the element won't even render, not even a flash,
+      // so some of these are just precautions. However in IE the element
+      // is visible whilst the popup box asking the user for permission for
+      // the web page to copy to the clipboard.
+      //
+
+      // Place in top-left corner of screen regardless of scroll position.
+      textArea.style.position = 'fixed';
+      textArea.style.top = 0;
+      textArea.style.left = 0;
+
+      // Ensure it has a small width and height. Setting to 1px / 1em
+      // doesn't work as this gives a negative w/h on some browsers.
+      textArea.style.width = '2em';
+      textArea.style.height = '2em';
+
+      // We don't need padding, reducing the size if it does flash render.
+      textArea.style.padding = 0;
+
+      // Clean up any borders.
+      textArea.style.border = 'none';
+      textArea.style.outline = 'none';
+      textArea.style.boxShadow = 'none';
+
+      // Avoid flash of white box if rendered for any reason.
+      textArea.style.background = 'transparent';
+
+
+      textArea.value = text;
+
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+
+      try {
+        var successful = document.execCommand('copy');
+        var msg = successful ? 'successful' : 'unsuccessful';
+        //console.log('Copying text command was ' + msg);
+      } catch (err) {
+        //console.log('Oops, unable to copy');
+      }
+
+      document.body.removeChild(textArea);
+    }
+        
+    function getIdealBoneMass(weight,gender){
+      if(gender === 'F'){
+        if(weight < 50){
+          return 1.95;
+        }
+        if(weight >=50 && weight <= 75){
+          return 2.40
+        }
+        if(weight > 76){
+          return 2.95;
+        }
+      }
+      if(gender === 'M'){
+        if(weight < 65){
+          return 2.65;
+        }
+        if(weight >=65 && weight <= 95){
+          return 3.29
+        }
+        if(weight > 95){
+          return 3.69;
+        }
+      }
+    }
+
+    function getPRating(rating){
+      if(rating === 1){
+        return 'Hidden Obese - This person seems to have a healthy body type based on physical however, they have a high body fat % with low muscle mass level.'
+      }
+      if(rating === 2){
+        return 'Obese - This person has a high body fat % with moderate muscle mass level.'
+      }
+      if(rating === 3){
+        return 'Solidly Built - This person have both high body fat % and a high muscle mass level.'
+      }
+      if(rating === 4){
+        return 'Under Exercised - This person has an averag body fat % and a less than average muscle mass level.'
+      }
+      if(rating === 5){
+        return 'Standard - This person has average levels of both body fat % and muscle mass level.'
+      }
+      if(rating === 6){
+        return 'Standard Muscular - This person has average body fat % and higher than normal muscle mass level.'
+      }
+      if(rating === 7){
+        return 'Thin - This person has both low body fat % and low muscle mass level.'
+      }
+      if(rating === 8){
+        return 'Thin and Muscular - This person has lower than normal body fat % while having adequate muscle mass level.'
+      }
+      if(rating === 9){
+        return 'Very Muscular - This person has lower than normal body fat % while having above average muscle mass level.'
+      }
+    }
+    var currentUser;
+
+    var magicText;
+
+    function doMagic2(user){
+      //console.log('this is magic');
+      
+      var name = $("#formName2").val();
+      var number = $("#formNumber2").val();
+      var gender = $("#genderSelect2").val();
+      var age = parseInt($("#formAge2").val());
+      var feet = parseInt($("#formHeight2").val());
+      var inches = parseInt($("#formHeightInches2").val());
+      var weight = $("#formWeight2").val();
+      var weightM = $("#weightSelect2").val();
+      var activity = $("#activitySelect2").val();
+      var waistline = $("#formWaistline2").val();
+      var today = new Date().toISOString().slice(0, 10);
+      
+      
+      // if(!user){
+      //   user = {};
+      //   user.name = name;
+      //   user.number = number;
+      //   user.gender = gender;
+      //   user.age = age;
+      //   user.record=[];
+      //   user.record.push(
+      //     { 
+      //       no:0,
+      //       weight:weight,
+      //       weightM:weightM,
+      //       fat:fat,
+      //       vfat:vfat,
+      //       bonemass:bonemass,
+      //       rmr:rmr,
+      //       mAge:mAge,
+      //       mMass:mMass,
+      //       pRating:pRating,
+      //       water:water,
+      //       date:today,
+      //       waistline:waistline,
+      //       remarks:remarks
+      //     });
+      //   //console.log(user);                    
+      // }else{
+      //   //user exists;
+      //   user.number = number;
+      //   user.gender = gender;
+      //   var no = user.record.length-1;
+      //   user.record.push(
+      //     { 
+      //       no:no,
+      //       weight:weight,
+      //       weightM:weightM,
+      //       fat:fat,
+      //       vfat:vfat,
+      //       bonemass:bonemass,
+      //       rmr:rmr,
+      //       mAge:mAge,
+      //       mMass:mMass,
+      //       pRating:pRating,
+      //       water:water,
+      //       date:today,
+      //       waistline:waistline,
+      //       remarks:remarks
+      //     });
+      // }
+
+      currentUser = user;
+      //convert to kgs
+      var lbs;
+      var weightKg;
+      
+
+      if(weightM === 'lbs'){
+        lbs = weight;
+        weightKg = round(toKgs(lbs));
+      }else{
+        weightKg = weight;
+        lbs = round(toLbs(weightKg));
+      }
+
+      var idealLbsMin = 0;
+      var idealKgsMin = 0;
+
+      var idealLbsMax = 0;
+      var idealKgsMax = 0;
+      //get ideal weight
+      
+      var a = getIdealWeight(gender,feet,inches);
+
+      idealLbsMin = round(a["idealLbsMin"]);
+      idealLbsMax = round(a["idealLbsMax"]);
+      idealKgsMin = round(toKgs(idealLbsMin));
+      idealKgsMax = round(toKgs(idealLbsMax));
+
+      //get program
+      var program = '';
+      var diffWeightLbs = 0;
+      var diffWeightKgs = 0;
+
+      if(lbs < idealLbsMin){
+        program = 'WGP';
+        diffWeightLbs = idealLbsMin - lbs; 
+      }
+      if(lbs > idealLbsMax){
+        program = 'WLP';
+        diffWeightLbs = lbs - idealLbsMax; 
+      }
+
+      diffWeightKgs = round(toKgs(diffWeightLbs));
+      diffWeightLbs = round(diffWeightLbs);
+
+      if(lbs >= idealLbsMin && lbs <= idealLbsMax){
+        program = 'WMP';
+      }
+
+      //Compute the total calories
+      var totalCal =0;
+      var bmr = 0;
+
+      var magicnumber = 0;
+      if(gender ==='M'){
+        bmr = (10 * weightKg) + (6.25 * (2.54 * ((feet * 12) + inches))) - (5 * age) + 5;
+      }else{
+        bmr = (10 * weightKg) + (6.25 * (2.54 * ((feet * 12) + inches))) - (5 * age) - 161;
+      }
+
+      totalCal = bmr * activity; 
+
+      var magicNumber = 0;
+
+      //200 - 500 add/subtract 
+      if(age < 40){
+        if(program == 'WLP'){
+          magicNumber = totalCal - 500;
+        }
+        if(program == 'WMP'){
+          magicNumber = totalCal;
+        }
+        if(program == 'WGP'){
+          magicNumber = totalCal + 500;
+        }
+      }else if (age >= 40){
+        if(program == 'WLP'){
+          magicNumber = totalCal - 200;
+        }
+        if(program == 'WMP'){
+          magicNumber = totalCal;
+        }
+        if(program == 'WGP'){
+          magicNumber = totalCal + 200;
+        }
+      }
+
+      totalCal = round(totalCal);
+      magicNumber = round(magicNumber);
+      globalMagicNumber = magicNumber;
+
+      $.mobile.changePage('#results');
+
+      var text = '';
+      //clear results page 
+      $("#resultContent").empty();
+      //todays date
+      $('#resultContent').append('<p> <strong>Date</strong> <br> '+today+'</p>');
+      text += 'Date '+today +'\n\n';
+      //present weight
+      $('#resultContent').append('<p> <strong>Present Weight</strong> <br> '+lbs+' lbs <br>'+weightKg+' kg'+'</p>');
+      if(weightKg !== 0 && weightKg !== undefined){
+        text += 'Present Weight - '+weightKg +' kg or '+lbs+' lbs \n\n';
+      }
+      //program
+      if(program === "WGP"){
+        $('#resultContent').append('<p> <strong>Program </strong><br> Weight Gain Program <br> to gain '+diffWeightLbs+' lbs / '+diffWeightKgs+'  kg</p>');
+        if(diffWeightKgs !== 0 && diffWeightKgs !== undefined){
+          text += 'Program - Weight Gain Program - to gain '+diffWeightLbs+' lbs / '+diffWeightKgs+'  kg\n\n';
+        }
+      }
+      if(program === "WLP"){
+        $('#resultContent').append('<p> <strong>Program </strong><br> Weight Loss Program <br> to lose '+diffWeightLbs+' lbs / '+diffWeightKgs+'  kg</p>');
+        if(diffWeightKgs !== 0 && diffWeightKgs !== undefined){
+          text += 'Program - Weight Loss Program - to lose '+diffWeightLbs+' lbs / '+diffWeightKgs+'  kg\n\n';
+        }
+      }
+      if(program === "WMP"){
+        $('#resultContent').append('<p> <strong>Program </strong><br> Weight Maintain Program </p>');
+          text += 'Program - Weight Maintain Program - to maintain weight healthily\n\n';
+      }
+      //ideal weight
+      $('#resultContent').append('<p> <strong>Ideal Weight</strong> <br> '+idealLbsMin+' - '+idealLbsMax+' lbs <br>'+idealKgsMin+' - '+idealKgsMax+' kg'+'</p>');
+      if( idealLbsMin !== 0){
+        text += 'Ideal Weight '+idealLbsMin+' - '+idealLbsMax+' lbs or '+idealKgsMin+' - '+idealKgsMax+' kg\n\n';
+      }
+      
+      //Waistline
+      $('#resultContent').append('<p> <strong>Waistline</strong> <br> '+waistline+' </p>');
+      if(waistline !== ''){
+        text += 'Waistline - '+waistline+'\n\n';
+      }
+
+      //Metabolic Rate
+      $('#resultContent').append('<p> <strong>Total Metabolic Rate</strong> <br> '+totalCal+' cal/day </p>');
+      if(totalCal !== 0){
+        text += 'Total Metabolic Rate - '+totalCal+' cal/day \n\n';
+      }
+      //Magic Number
+      $('#resultContent').append('<p> <strong>Magic Number</strong> <br> '+magicNumber+' cal/day </p>');
+      if(magicNumber !== 0){
+        text += 'Magic Number - '+magicNumber+' cal/day \n\n';
+      }
+      //console.log(text);
+      magicText = text;
+      
+ }
+
+
+    function doMagic(user){
+      //console.log('this is magic');
+      
+      var name = $("#formName").val();
+      var number = $("#formNumber").val();
+      var gender = $("#genderSelect").val();
+      var age = parseInt($("#formAge").val());
+      var feet = parseInt($("#formHeight").val());
+      var inches = parseInt($("#formHeightInches").val());
+      var weight = $("#formWeight").val();
+      var weightM = $("#weightSelect").val();
+
+      var fat = $("#formFat").val();
+      var vfat = $("#formVFat").val();
+      var bonemass = $("#formBoneMass").val();
+      var rmr = $("#formRMR").val();
+
+      var mAge= $("#formMetabolicAge").val();
+      var mMass = $("#formMuscleMass").val();
+      var pRating = parseInt($("#formPhysiqueRating").val());
+      var water = $("#formWater").val();
+      var waistline = $("#formWaistline").val();
+      var remarks = $("#formRemarks").val();
+
+      var today = new Date().toISOString().slice(0, 10);
+      
+      if(!user){
+        user = {};
+        user.name = name;
+        user.number = number;
+        user.gender = gender;
+        user.age = age;
+        user.record=[];
+        user.record.push(
+          { 
+            no:0,
+            weight:weight,
+            weightM:weightM,
+            fat:fat,
+            vfat:vfat,
+            bonemass:bonemass,
+            rmr:rmr,
+            mAge:mAge,
+            mMass:mMass,
+            pRating:pRating,
+            water:water,
+            date:today,
+            waistline:waistline,
+            remarks:remarks
+          });
+        //console.log(user);                    
+      }else{
+        //user exists;
+        user.number = number;
+        user.gender = gender;
+        var no = user.record.length-1;
+        user.record.push(
+          { 
+            no:no,
+            weight:weight,
+            weightM:weightM,
+            fat:fat,
+            vfat:vfat,
+            bonemass:bonemass,
+            rmr:rmr,
+            mAge:mAge,
+            mMass:mMass,
+            pRating:pRating,
+            water:water,
+            date:today,
+            waistline:waistline,
+            remarks:remarks
+          });
+      }
+
+      currentUser = user;
+      //convert to kgs
+      var lbs;
+      var weightKg;
+      
+
+      if(weightM === 'lbs'){
+        lbs = weight;
+        weightKg = round(toKgs(lbs));
+      }else{
+        weightKg = weight;
+        lbs = round(toLbs(weightKg));
+      }
+      var idealBMass = getIdealBoneMass(weightKg,gender);
+      var fatKg = round(weightKg * (fat /100));
+
+      var idealLbsMin = 0;
+      var idealKgsMin = 0;
+
+      var idealLbsMax = 0;
+      var idealKgsMax = 0;
+      //get ideal weight
+      
+      var a = getIdealWeight(gender,feet,inches);
+
+      idealLbsMin = round(a["idealLbsMin"]);
+      idealLbsMax = round(a["idealLbsMax"]);
+      idealKgsMin = round(toKgs(idealLbsMin));
+      idealKgsMax = round(toKgs(idealLbsMax));
+
+      //get program
+      var program = '';
+      var diffWeightLbs = 0;
+      var diffWeightKgs = 0;
+
+      if(lbs < idealLbsMin){
+        program = 'WGP';
+        diffWeightLbs = idealLbsMin - lbs; 
+      }
+      if(lbs > idealLbsMax){
+        program = 'WLP';
+        diffWeightLbs = lbs - idealLbsMax; 
+      }
+
+      diffWeightKgs = round(toKgs(diffWeightLbs));
+      diffWeightLbs = round(diffWeightLbs);
+
+      if(lbs >= idealLbsMin && lbs <= idealLbsMax){
+        program = 'WMP';
+      }
+
+      //get physique rating 
+      var pRatingDesc = getPRating(pRating);
+
+      //Get BFI
+      var bfi = getBFI(gender,age,fat);
+      
+      //Compute the total calories
+      var totalCal =0;
+      if(gender === 'F'){
+        totalCal = rmr * 1.25;
+      }else if(gender === 'M'){
+        totalCal = rmr * 1.30;
+      }
+
+      var magicNumber = 0;
+
+      //200 - 500 add/subtract 
+      if(age < 40){
+        if(program == 'WLP'){
+          magicNumber = totalCal - 500;
+        }
+        if(program == 'WMP'){
+          magicNumber = totalCal;
+        }
+        if(program == 'WGP'){
+          magicNumber = totalCal + 500;
+        }
+      }else if (age >= 40){
+        if(program == 'WLP'){
+          magicNumber = totalCal - 200;
+        }
+        if(program == 'WMP'){
+          magicNumber = totalCal;
+        }
+        if(program == 'WGP'){
+          magicNumber = totalCal + 200;
+        }
+      }
+
+      totalCal = round(totalCal);
+      magicNumber = round(magicNumber);
+      globalMagicNumber = magicNumber;
+
+      $.mobile.changePage('#results');
+
+      var text = '';
+      //clear results page 
+      $("#resultContent").empty();
+      //todays date
+      $('#resultContent').append('<p> <strong>Date</strong> <br> '+today+'</p>');
+      text += 'Date '+today +'\n\n';
+      //present weight
+      $('#resultContent').append('<p> <strong>Present Weight</strong> <br> '+lbs+' lbs <br>'+weightKg+' kg'+'</p>');
+      if(weightKg !== 0 && weightKg !== undefined){
+        text += 'Present Weight - '+weightKg +' kg or '+lbs+' lbs \n\n';
+      }
+      //program
+      if(program === "WGP"){
+        $('#resultContent').append('<p> <strong>Program </strong><br> Weight Gain Program <br> to gain '+diffWeightLbs+' lbs / '+diffWeightKgs+'  kg</p>');
+        if(diffWeightKgs !== 0 && diffWeightKgs !== undefined){
+          text += 'Program - Weight Gain Program - to gain '+diffWeightLbs+' lbs / '+diffWeightKgs+'  kg\n\n';
+        }
+      }
+      if(program === "WLP"){
+        $('#resultContent').append('<p> <strong>Program </strong><br> Weight Loss Program <br> to lose '+diffWeightLbs+' lbs / '+diffWeightKgs+'  kg</p>');
+        if(diffWeightKgs !== 0 && diffWeightKgs !== undefined){
+          text += 'Program - Weight Loss Program - to lose '+diffWeightLbs+' lbs / '+diffWeightKgs+'  kg\n\n';
+        }
+      }
+      if(program === "WMP"){
+        $('#resultContent').append('<p> <strong>Program </strong><br> Weight Maintain Program </p>');
+          text += 'Program - Weight Maintain Program - to maintain weight healthily\n\n';
+      }
+      //ideal weight
+      $('#resultContent').append('<p> <strong>Ideal Weight</strong> <br> '+idealLbsMin+' - '+idealLbsMax+' lbs <br>'+idealKgsMin+' - '+idealKgsMax+' kg'+'</p>');
+      if( idealLbsMin !== 0){
+        text += 'Ideal Weight '+idealLbsMin+' - '+idealLbsMax+' lbs or '+idealKgsMin+' - '+idealKgsMax+' kg\n\n';
+      }
+      //BFI
+      $('#resultContent').append('<p> <strong>Body Fat Index</strong> <br> '+bfi[0] + '<br>Your body fat is '+fat+'%'+'<br>Your ideal body fat is '+bfi[1]+'</p>');
+      if(fat !== '' ){
+        text += 'Body Fat Index - '+bfi[0] + '. Your body fat is '+fat+'%'+'. Your ideal body fat is '+bfi[1]+'\n\n';
+      }
+      //Fat
+      $('#resultContent').append('<p> <strong>Total Body Fat</strong> <br> '+fatKg+' kg </p>');
+      if(fatKg !== 0){
+        text += 'Total Body Fat - '+fatKg+' kg\n\n';
+      }
+      //Visceral Fat
+      $('#resultContent').append('<p> <strong>Visceral Fat</strong> <br> '+vfat+' <br>Ideal visceral fat is 1 - 4 </p>');
+      if(vfat !== ''){
+        text += 'Visceral Fat - '+vfat+'. Ideal visceral fat is 1 - 4 \n\n';
+      }
+      //Bone Mass
+      $('#resultContent').append('<p> <strong>Bone Mass</strong> <br> '+bonemass+' '+weightM+' <br>Ideal bone mass for your weight is '+ round(toLbs(idealBMass))+' lbs or '+idealBMass+' kg</p>');
+      if(bonemass !== ''){
+        text += 'Bone Mass - '+bonemass+' '+weightM+'. Ideal bone mass for your weight is '+ round(toLbs(idealBMass))+' lbs or '+idealBMass+' kg\n\n';
+      }
+      //Metabolic Age
+      $('#resultContent').append('<p> <strong>Metabolic Age</strong> <br> '+mAge+' </p>');
+      if(mAge !== ''){
+        text += 'Metabolic Age - '+mAge+'\n\n';
+      }
+      //Muscle Mass
+      $('#resultContent').append('<p> <strong>Muscle Mass</strong> <br> '+mMass+' '+weightM+'</p>');
+      if(mMass !== ''){
+        text += 'Muscle Mass - '+mMass+mMass+' '+weightM+'\n\n';
+      }
+      //Physique Rating
+      $('#resultContent').append('<p> <strong>Physique Rating</strong> <br> '+pRating+'<br>'+pRatingDesc+'</p>');
+      if(!isNaN(pRating)){
+        text += 'Physique Rating - '+pRating+'. '+pRatingDesc+'\n\n';
+      }
+      //Water Percentage
+      $('#resultContent').append('<p> <strong>Water Percentage</strong> <br> '+water+' %<br>Ideally you should have between 50 % - 60 % water</p>');
+      if(water !== ''){
+        text += 'Water Percentage - '+water+' %. Ideally you should have between 50 % - 60 % water\n\n';
+      }
+      //Waistline
+      $('#resultContent').append('<p> <strong>Waistline</strong> <br> '+waistline+' </p>');
+      if(waistline !== ''){
+        text += 'Waistline - '+waistline+'\n\n';
+      }
+      //Metabolic Rate
+      $('#resultContent').append('<p> <strong>Total Metabolic Rate</strong> <br> '+totalCal+' cal/day </p>');
+      if(totalCal !== 0){
+        text += 'Total Metabolic Rate - '+totalCal+' cal/day \n\n';
+      }
+      //Magic Number
+      $('#resultContent').append('<p> <strong>Magic Number</strong> <br> '+magicNumber+' cal/day </p>');
+      if(magicNumber !== 0){
+        text += 'Magic Number - '+magicNumber+' cal/day \n\n';
+      }
+      //console.log(text);
+      magicText = text;
+      
+ }
+
+ function copyMagic(){
+   copyTextToClipboard(magicText);
+   $( "#copyPop1" ).popup( "open" ); 
+ }
+ function saveUser(){
+    var storage = window.localStorage;
+
+    if(currentUser.name !== ''){
+      var user = storage.getItem('users');
+      try{
+        user = JSON.parse(user);
+        if(user === null){
+          user = {};
+        }
+        if(currentUser.name in user){
+          $("#popupBasic p").html("User "+currentUser.name+" already exists.");
+          $("#popupBasic").popup('open');
+        }else{
+          user[currentUser.name] = currentUser
+          storage.setItem('users',JSON.stringify(user));
+
+          console.log(storage.getItem('users'));
+        }
+
+      }catch(err){
+        console.log(err);
+      }
+    }
+    
+ }
+
+ var magicText2;
+ function getPlan(x){
+
+    var magicNumber = globalMagicNumber;
+    globalNCTime = x;
+
+    magicNumber = Math.ceil(magicNumber/100)*100
+
+    if(magicNumber < 1000){magicNumber = 1000;}
+    if(magicNumber > 2100){magicNumber = 2100;}
+    var plan;
+    //breakfast
+    if(x === 'a'){
+      plan = mealPlan[magicNumber].breakfastPlan; 
+    }
+    if(x === 'b'){
+      plan = mealPlan[magicNumber].lunchPlan; 
+    }
+    if(x === 'c'){
+      plan = mealPlan[magicNumber].dinnerPlan; 
+    }
+    $.mobile.changePage('#mealresults');
+    //clear results page 
+    $("#mealContent").empty();
+    $('#mealContent').append('<p> <strong>Total Calories</strong> <br> '+plan.total+' cal/day</p>');
+    
+    var content = '';
+    var text = '';
+    if(plan.breakfast.length > 0){
+      content += '<p> <strong>Breakfast</strong> <br>';
+      text += 'Breakfast \n';
+        for(var q = 0;q < plan.breakfast.length; q++){
+          content += plan.breakfast[q].meal +' - '+plan.breakfast[q].calories + ' cal <br>';
+          text += plan.breakfast[q].meal +' - '+plan.breakfast[q].calories + ' cal \n';
+        }
+        content += '</p>';
+        text += '\n';
+    }
+    if(plan['9am'].length > 0){
+      content += '<p> <strong>9 am</strong> <br>';
+      text += '9 am \n';
+        for(var q = 0;q < plan['9am'].length; q++){
+          content += plan['9am'][q].meal +' - '+plan['9am'][q].calories + ' cal <br>';
+          text += plan['9am'][q].meal +' - '+plan['9am'][q].calories + ' cal \n';
+        }
+        content += '</p>';
+        text += '\n';
+    }
+    if(plan['lunch'].length > 0){
+      content += '<p> <strong>Lunch</strong> <br> ';
+      text += 'Lunch \n';
+        for(var q = 0;q < plan['lunch'].length; q++){
+          content += plan['lunch'][q].meal +' - '+plan['lunch'][q].calories + ' cal <br>';
+          text += plan['lunch'][q].meal +' - '+plan['lunch'][q].calories + ' cal \n';
+        }
+        content += '</p>';
+        text += '\n';
+    }
+    if(plan['4pm'].length > 0){
+      content += '<p> <strong>4 pm</strong> <br> ';
+      text += '4pm \n';
+        for(var q = 0;q < plan['4pm'].length; q++){
+          content += plan['4pm'][q].meal +' - '+plan['4pm'][q].calories + ' cal <br>';
+          text += plan['4pm'][q].meal +' - '+plan['4pm'][q].calories + ' cal \n';
+        }
+        content += '</p>';
+        text += '\n';
+    }
+    if(plan['dinner'].length > 0){
+
+      content += '<p> <strong>Dinner</strong> <br> ';
+        text += 'Dinner \n';
+        for(var q = 0;q < plan['dinner'].length; q++){
+          content += plan['dinner'][q].meal +' - '+plan['dinner'][q].calories + ' cal <br>';
+          text += plan['dinner'][q].meal +' - '+plan['dinner'][q].calories + ' cal \n';
+        }
+        content += '</p>';
+        text += '\n';
+    }
+    if(plan['9pm'].length > 0){
+      content += '<p> <strong>9 pm</strong> <br> ';
+      text += '9 pm \n';
+        for(var q = 0;q < plan['9pm'].length; q++){
+          content += plan['9pm'][q].meal +' - '+plan['9pm'][q].calories + ' cal <br>';
+          text += plan['9pm'][q].meal +' - '+plan['9pm'][q].calories + ' cal \n';
+        }
+        content += '</p>';
+        text += '\n';
+    }
+    
+
+    text += "Notes:\n1. Drink 12-14 glasses of water.\n2. No pork and beef. \n3. Don't worry about the vegetables. It's all in the shake.\n4. Follow the meal plan."
+    magicText2 = text;
+    $('#mealContent').append(content);
+    $("#calorieSelect").val(magicNumber).selectmenu('refresh');
+}
+
+
+function copyMagic2(){
+   copyTextToClipboard(magicText2);
+   $( "#copyPop2" ).popup( "open" );
+ }
+
+function clearAll2(){
+      $("#genderSelect2").val('M').selectmenu('refresh');
+      $("#formName2").val('');
+      $("#formNumber2").val('');
+
+      $("#formAge2").val('');
+      $("#formHeight2").val('');
+      $("#formHeightInches2").val('');
+      $("#formWeight2").val('');
+
+      $("#weightSelect2").val('lbs').selectmenu('refresh');
+
+      $('#iconGender2').attr('src', 'img/male.png');
+  }
+
+  function clearAll(){
+      $("#genderSelect").val('M').selectmenu('refresh');
+      $("#formName").val('');
+      $("#formNumber").val('');
+
+      $("#formAge").val('');
+      $("#formHeight").val('');
+      $("#formHeightInches").val('');
+      $("#formWeight").val('');
+
+      $("#weightSelect").val('lbs').selectmenu('refresh');
+
+      $("#formFat").val('');
+      $("#formVFat").val('');
+      $("#formBoneMass").val('');
+      $("#formRMR").val('');
+      $("#formMetabolicAge").val('');
+      $("#formMuscleMass").val('');
+      $("#formPhysiqueRating").val('');
+      $("#formWater").val('');
+      $("#formWaistline").val('');
+      //$("#formRemarks").val('');
+      $('#iconGender').attr('src', 'img/male.png');
+  }
+
+
+
+  function facebook(){
+    window.open("https://www.facebook.com/john.saguit", "_blank");
+  }
+
+  </script>
+</head>
+
+<body>
+  
+  <!-- landing page -->
+   <div data-role="page" id="landing">
+  
+      <div data-role="content">
+          <img  src="img/icon.png" style="width:60%; margin-left:auto; margin-right:auto; display: block; border-radius:50%"/>
+          <img  src="img/banner.png" style="width:90%; margin-left:auto; margin-right:auto; display: block;"/>
+      </div>
+      <!-- /content -->
+      <div data-role="content">
+        <h3>Wellness Evaluation</h3>
+        <button onclick="goMain()" data-icon="flat-checkround" data-theme="g">With Tanita Scale</button>
+        <button onclick="goMain2()" data-icon="flat-checkround" data-theme="f">Without Tanita Scale</button><br>
+        <h3>Guides</h3>
+        <!--button onclick="goFollowUp();" data-icon="flat-man" data-theme="e">Follow Up</button-->
+        <button onclick="goEvaluation();" data-icon="flat-new" data-theme="e">Wellness Evaluation Guide</button>
+        <button onclick="globalMagicNumber=1300;goMeal();" data-icon="flat-heart" data-theme="d">Meal Plan by Calories</button>
+        <br>
+        <h3>Video Library (Offline)</h3>
+        <button onclick="goVideo();" data-icon="flat-new" data-theme="b">Videos</button> <br><br>
+        <button onclick="goAbout()" data-icon="flat-man" data-theme="a">About Us</button>
+      </div>
+    </div>
+    <!-- /END landing PAGE -->
+
+    <!-- Evaluation page -->
+  <div data-role="page" id="video">
+    <div data-role="header" data-position="fixed">
+      <a href="#landing" data-iconpos="notext" data-role="button" data-icon="home" title="Home">Home</a>
+
+      <h1>Video Library</h1>
+    </div>
+    <div data-role="content">
+        <h3>Seed to Feed</h3>
+        <video width="100%" controls>
+          <source src="img/seed.mp4"
+                  type='video/mp4;codecs="avc1.42E01E, mp4a.40.2"'/>
+        </video>
+        <h3>Number 1 Meal Replacement in the World!</h3>
+        <video width="100%" controls>
+          <source src="img/no1meal.mp4"
+                  type='video/mp4;codecs="avc1.42E01E, mp4a.40.2"'/>
+        </video>
+        <h3>Herbalife Gives Back</h3>
+        <video width="100%" controls>
+          <source src="img/giveback.mp4"
+                  type='video/mp4;codecs="avc1.42E01E, mp4a.40.2"'/>
+        </video>  
+      </video>
+      <h3>Healthy Breakfast Campaign</h3>
+      <video width="100%" controls>
+        <source src="img/breakfast.mp4"
+                type='video/mp4;codecs="avc1.42E01E, mp4a.40.2"'/>
+      </video>
+      <br><br>
+      <p>Disclaimer: These videos are owned by Herbalife International of America, Inc. and can be watched for free at https://video.herbalife.com/. The videos are added in this app for the convenience of the coaches to promote their business. Herbalife has all rights to cease the videos at any time. </p>
+    </div>
+    <!-- /content -->
+    <div data-role="content">
+      <button onclick="goLanding();" data-icon="flat-cross" data-theme="e">Go back</button>
+      
+    </div>
+  </div>
+  <!-- /END Evaluation PAGE -->
+
+
+  <!-- Evaluation page -->
+  <div data-role="page" id="evaluation">
+    <div data-role="header" data-position="fixed">
+      <a href="#landing" data-iconpos="notext" data-role="button" data-icon="home" title="Home">Home</a>
+
+      <h1>Evaluation Guide</h1>
+    </div>
+    <div data-role="content">
+        <button onclick="goCalorie()" data-icon="flat-heart" data-theme="d">Simplified Calorie Guide</button>
+        <button onclick="goRecommend()" data-icon="flat-checkround" data-theme="g">Recommended Weight</button>
+        <h3>Using Tanita Inner Scan</h3>
+        <button onclick="goFat()" data-icon="flat-man" data-theme="f">Fat Percentage</button>
+        <button onclick="goVisceral();" data-icon="flat-eye" data-theme="f">Visceral Fat Rating</button>
+        <button onclick="goWater()" data-icon="flat-cmd" data-theme="f">Body Water Percentage</button>
+        <button onclick="goBMR()" data-icon="flat-man" data-theme="f">BMR</button>
+        <button onclick="goMuscle()" data-icon="flat-heart" data-theme="f">Muscles Mass</button>
+        <button onclick="goMetabolic()" data-icon="flat-time" data-theme="f">Metabolic Age</button>
+        <button onclick="goPhysique()" data-icon="flat-eye" data-theme="f">Physique Rating</button>
+      
+    </div>
+    <!-- /content -->
+    <div data-role="content">
+      <button onclick="goLanding();" data-icon="flat-cross" data-theme="e">Go back</button>
+      
+    </div>
+  </div>
+  <!-- /END Evaluation PAGE -->
+
+  <!-- Calorie page -->
+  <div data-role="page" id="calorie">
+      <div data-role="header" data-position="fixed">
+        <a href="#landing" data-iconpos="notext" data-role="button" data-icon="home" title="Home">Home</a>
+  
+        <h1>Calorie Guide</h1>
+      </div>
+      <div data-role="content">
+          <table width = "100%">
+            <tr style = "background:lightgrey">
+              <td width = "30%">1 cup</td>
+              <td width = "50%">Rice, boiled</td>
+              <td width = "20%">200 cal</td>
+            </tr>
+            <tr>
+                <td>1 cup</td>
+                <td>Rice, fried</td>
+                <td>400 cal</td>
+            </tr>
+            <tr style = "background:lightgrey">
+                <td>1 serving</td>
+                <td>Fish/Chicken</td>
+                <td>300 cal</td>
+            </tr>
+            <tr>
+                <td>1 serving</td>
+                <td>Pork/Beef</td>
+                <td>600 cal</td>
+            </tr>
+            <tr style = "background:lightgrey">
+                <td>1 cup</td>
+                <td>Vegetables, fresh</td>
+                <td>100 cal</td>
+            </tr>
+            <tr>
+                <td>1 cup</td>
+                <td>Vegetables, cooked</td>
+                <td>150 cal</td>
+            </tr>
+            <tr style = "background:lightgrey">
+                <td>1 serving</td>
+                <td>Cup of fruit</td>
+                <td>80 - 100 cal</td>
+            </tr>
+            <tr>
+                <td>8 oz</td>
+                <td>Softdrinks</td>
+                <td>197 cal</td>
+            </tr>
+            <tr style = "background:lightgrey">
+                <td>8 oz</td>
+                <td>Juice</td>
+                <td>180 cal</td>
+            </tr>
+            <tr>
+                <td>1 cup</td>
+                <td>Coffee, 3 in 1</td>
+                <td>60 cal</td>
+            </tr>
+            <tr style = "background:lightgrey">
+                <td>1 cup</td>
+                <td>Black coffee</td>
+                <td>30 cal</td>
+            </tr>
+            <tr>
+                <td>1 pc</td>
+                <td>Slice Bread</td>
+                <td>100 cal</td>
+            </tr>
+            <tr style = "background:lightgrey">
+                <td>1 pc</td>
+                <td>Candy</td>
+                <td>80 cal</td>
+            </tr>
+            <tr>
+                <td>1 serving</td>
+                <td>Cake/Pastry</td>
+                <td>400 cal</td>
+            </tr>
+            <tr style = "background:lightgrey">
+                <td>1 pc</td>
+                <td>Siopao</td>
+                <td>260 cal</td>
+            </tr>
+            <tr>
+                <td>1 pc</td>
+                <td>Instant Pansit</td>
+                <td>240 cal</td>
+            </tr>
+            <tr style = "background:lightgrey">
+                <td>1 tbsp</td>
+                <td>Oil/ Mayo</td>
+                <td>150 cal</td>
+            </tr>
+            <tr>
+                <td>1 tbsp</td>
+                <td>Gravy/Sauce</td>
+                <td>100 cal</td>
+            </tr>
+            <tr style = "background:lightgrey">
+                <td>1 tbsp</td>
+                <td>Vinegrette</td>
+                <td>50 cal</td>
+            </tr>
+            <tr>
+                <td>1 slice</td>
+                <td>Pizza</td>
+                <td>600 cal</td>
+            </tr>
+            <tr style = "background:lightgrey">
+                <td>1 scoop</td>
+                <td>Ice Cream</td>
+                <td>400 cal</td>
+            </tr>
+            <tr>
+                <td>1 pc</td>
+                <td>Burger</td>
+                <td>600 cal</td>
+            </tr>
+            <tr style = "background:lightgrey">
+                <td>1 pc</td>
+                <td>Egg</td>
+                <td>86 cal</td>
+            </tr>
+            <tr>
+                <td>1 pc</td>
+                <td>Large french fries</td>
+                <td>600 cal</td>
+            </tr>
+            <tr style = "background:lightgrey">
+                <td>1 serving</td>
+                <td>F1 Shake mix (80) + water (0)</td>
+                <td>80 cal</td>
+            </tr>
+            <tr>
+                <td>1 serving</td>
+                <td>F1 Shake mix (80) + oats (40) + banana (30)</td>
+                <td>150 cal</td>
+            </tr>
+            <tr style = "background:lightgrey">
+                <td>1 serving</td>
+                <td>F1 Shake mix (80) + Non-fat milk (90)</td>
+                <td>170 cal</td>
+            </tr>
+            <tr>
+                <td>1 serving</td>
+                <td>F1 Shake mix (80) + Low fat milk (140)</td>
+                <td>220 cal</td>
+            </tr>
+          </table>
+        
+      </div>
+      <!-- /content -->
+      <div data-role="content">
+        <button onclick="$.mobile.back();" data-icon="flat-cross" data-theme="e">Go back</button>
+        
+      </div>
+    </div>
+    <!-- /END calorie PAGE -->
+
+    <!-- Recommend page -->
+  <div data-role="page" id="recommend">
+      <div data-role="header" data-position="fixed">
+        <a href="#landing" data-iconpos="notext" data-role="button" data-icon="home" title="Home">Home</a>
+  
+        <h1>Ideal Weight</h1>
+      </div>
+      <div data-role="content">
+        <h2>Men</h2>
+        
+          <table width = "100%"  >
+            <tr style = "background:rgb(109, 197, 226)">
+              <td width = "25%">Height (Inches)</td>
+              <td width = "25%">Weight (Pounds)</td>
+              <td width = "25%">Height (Inches)</td>
+              <td width = "25%">Weight (Pounds)</td>
+            </tr>
+            <tr>
+                <td>5'2"</td>
+                <td>115 - 121</td>
+                <td>5'10"</td>
+                <td>155 - 185</td>
+            </tr>
+            <tr style = "background:lightblue">
+                <td>5'3"</td>
+                <td>120 - 129</td>
+                <td>5'11"</td>
+                <td>160 - 193</td>
+            </tr>
+            <tr>
+                <td>5'4"</td>
+                <td>125 - 137</td>
+                <td>6'0"</td>
+                <td>165 - 201</td>
+                
+            </tr>
+            <tr style = "background:lightblue">
+                <td>5'5"</td>
+                <td>130 - 145</td>
+                <td>6'1"</td>
+                <td>170 - 209</td>
+            </tr>
+            <tr>
+                <td>5'6"</td>
+                <td>135 - 153</td>
+                <td>6'2"</td>
+                <td>175 - 217</td>
+            </tr>
+            <tr style = "background:lightblue">
+                <td>5'7"</td>
+                <td>140 - 161</td>
+                <td>6'3"</td>
+                <td>180 - 225</td>
+            </tr>
+            <tr>
+                <td>5'8"</td>
+                <td>145 - 169</td>
+                <td>6'4"</td>
+                <td>185 - 223</td>
+            </tr>
+            <tr style = "background:lightblue">
+                <td>5'9"</td>
+                <td>150 - 177</td>
+                <td> </td>
+                <td> </td>
+            </tr>
+          </table>
+          <h2>Women</h2>
+          <table width = "100%">
+            <tr style = "background:rgb(252, 158, 173)">
+              <td width = "25%">Height (Inches)</td>
+              <td width = "25%">Weight (Pounds)</td>
+              <td width = "25%">Height (Inches)</td>
+              <td width = "25%">Weight (Pounds)</td>
+            </tr>
+            <tr>
+                <td>4'11"</td>
+                <td>93 - 100</td>
+                <td>5'7"</td>
+                <td>121 - 142</td>
+            </tr>
+            <tr style = "background:pink">
+                <td>5'0"</td>
+                <td>98 - 102</td>
+                <td>5'8"</td>
+                <td>124 - 148</td>
+            </tr>
+            <tr>
+                <td>5'1"</td>
+                <td>103 - 106</td>
+                <td>5'9"</td>
+                <td>127 - 153</td>
+                
+            </tr>
+            <tr style = "background:pink">
+                <td>5'2"</td>
+                <td>106 - 112</td>
+                <td>5'10"</td>
+                <td>130 - 158</td>
+            </tr>
+            <tr>
+                <td>5'3"</td>
+                <td>109 - 118</td>
+                <td>5'11"</td>
+                <td>133 - 163</td>
+            </tr>
+            <tr style = "background:pink">
+                <td>5'4"</td>
+                <td>112 - 124</td>
+                <td>6'0"</td>
+                <td>136 - 168</td>
+            </tr>
+            <tr>
+                <td>5'5"</td>
+                <td>115 - 130</td>
+                <td>6'1"</td>
+                <td>139 - 173</td>
+            </tr>
+            <tr style = "background:pink">
+                <td>5'6"</td>
+                <td>118 - 136</td>
+                <td> </td>
+                <td> </td>
+            </tr>
+          </table> 
+      </div>
+      <!-- /content -->
+      <div data-role="content">
+        <button onclick="$.mobile.back();" data-icon="flat-cross" data-theme="e">Go back</button>
+        
+      </div>
+    </div>
+    <!-- /END recommend PAGE -->
+
+ <!-- Fat page -->
+ <div data-role="page" id="fat">
+    <div data-role="header" data-position="fixed">
+      <a href="#landing" data-iconpos="notext" data-role="button" data-icon="home" title="Home">Home</a>
+        <h1>Fat %</h1>
+    </div>
+    <div data-role="content">
+      <h4>Body fat percentage is the amount of body fat as proportion of your body weight.</h4>
+      <p>Reducing excess levels of body fat has shown to reduce the risk of certain conditions such as <b>high blood pressure, 
+        heart disease, diabetes and cancer </b>. The chart below shows the healthy ranges for body fat.
+      </p>
+      
+      <h3>Men</h3>
+        <table width = "100%"  >
+          <tr style = "background:rgb(109, 197, 226)">
+            <td width = "20%">Age</td>
+            <td width = "20%">Excellent</td>
+            <td width = "20%">Good</td>
+            <td width = "20%">Medium</td>
+            <td width = "20%">Bad</td>
+          </tr>
+          <tr>
+              <td>20 - 24</td>
+              <td>10.8</td>
+              <td>14.9</td>
+              <td>19.0</td>
+              <td>>23.3</td>
+              
+          </tr>
+          <tr style = "background:lightblue">
+              <td>25 - 29</td>
+              <td>12.8</td>
+              <td>16.5</td>
+              <td>20.3</td>
+              <td>>24.3</td>
+          </tr>
+          <tr>
+              <td>30-34</td>
+              <td>14.5</td>
+              <td>18.0</td>
+              <td>21.5</td>
+              <td>>25.2</td>
+          </tr>
+          <tr style = "background:lightblue">
+              <td>35-39</td>
+              <td>16.1</td>
+              <td>19.3</td>
+              <td>22.6</td>
+              <td>>26.1</td>
+          </tr>
+          <tr>
+              <td>40-44</td>
+              <td>17.5</td>
+              <td>20.5</td>
+              <td>23.6</td>
+              <td>>26.9</td>
+          </tr>
+          <tr style = "background:lightblue">
+              <td>45-49</td>
+              <td>18.6</td>
+              <td>21.5</td>
+              <td>24.5</td>
+              <td>>27.6</td>
+          </tr>
+          <tr>
+              <td>50-54</td>
+              <td>19.2</td>
+              <td>22.1</td>
+              <td>25.1</td>
+              <td>>28.2</td>
+          </tr>
+          <tr style = "background:lightblue">
+              <td>55-59</td>
+              <td>19.8</td>
+              <td>22.7</td>
+              <td>25.6</td>
+              <td>>28.7</td>
+          </tr>
+          <tr>
+              <td>60+</td>
+              <td>20.2</td>
+              <td>23.3</td>
+              <td>26.2</td>
+              <td>>29.3</td>
+          </tr>
+        </table>
+        <h3>Women</h3>
+        <table width = "100%"  >
+            <tr style = "background:rgb(252, 158, 173)">
+              <td width = "20%">Age</td>
+              <td width = "20%">Excellent</td>
+              <td width = "20%">Good</td>
+              <td width = "20%">Medium</td>
+              <td width = "20%">Bad</td>
+            </tr>
+            <tr>
+                <td>20 - 24</td>
+                <td>18.2</td>
+                <td>22.1</td>
+                <td>25.0</td>
+                <td>>29.6</td>
+                
+            </tr>
+            <tr style = "background:pink">
+                <td>25 - 29</td>
+                <td>18.9</td>
+                <td>22.0</td>
+                <td>25.4</td>
+                <td>>29.8</td>
+            </tr>
+            <tr>
+                <td>30-34</td>
+                <td>19.7</td>
+                <td>22.7</td>
+                <td>26.4</td>
+                <td>>30.5</td>
+            </tr>
+            <tr style = "background:pink">
+                <td>35-39</td>
+                <td>21.1</td>
+                <td>24.0</td>
+                <td>27.7</td>
+                <td>>31.5</td>
+            </tr>
+            <tr>
+                <td>40-44</td>
+                <td>22.3</td>
+                <td>25.6</td>
+                <td>29.3</td>
+                <td>>32.8</td>
+            </tr>
+            <tr style = "background:pink">
+                <td>45-49</td>
+                <td>24.3</td>
+                <td>27.3</td>
+                <td>30.9</td>
+                <td>>34.1</td>
+            </tr>
+            <tr>
+                <td>50-54</td>
+                <td>25.2</td>
+                <td>26.2</td>
+                <td>31.8</td>
+                <td>>35.1</td>
+            </tr>
+            <tr style = "background:pink">
+                <td>55-59</td>
+                <td>26.6</td>
+                <td>29.7</td>
+                <td>33.1</td>
+                <td>>36.2</td>
+            </tr>
+            <tr>
+                <td>60+</td>
+                <td>27.4</td>
+                <td>30.7</td>
+                <td>34.0</td>
+                <td>>37.3</td>
+            </tr>
+          </table>
+    </div>
+    <!-- /content -->
+    <div data-role="content">
+      <button onclick="$.mobile.back();" data-icon="flat-cross" data-theme="e">Go back</button>
+      
+    </div>
+  </div>
+  <!-- /END Fat PAGE -->
+
+  <!-- Visceral page -->
+ <div data-role="page" id="visceral">
+    <div data-role="header" data-position="fixed">
+      <a href="#landing" data-iconpos="notext" data-role="button" data-icon="home" title="Home">Home</a>
+        <h1>Visceral Fat</h1>
+    </div>
+    <div data-role="content">
+      <p>
+        Visceral fat is the fat that is in the internal abdominal cavity, surrounding the vital organs
+        in the trunk (abdominal) area. <br><br>Research shows that even if your weight and body fat remaind constant,
+        as you get older the distribution of fat changes and is more likely to shift to the trunk area especially
+        post menopause. <br><br>Ensuring you, have healthy levels of visceral fat may reduce the risk of certain
+        diseases such as heart disease, high blood pressure, and the onset of type 2 diabetes.
+      </p>
+      
+        <table width = "100%"  >
+          <tr style = "background:rgb(106, 197, 228)">
+            <td width = "50%">V-Fat Index</td>
+            <td width = "50%">Rating</td>
+          </tr>
+          <tr>
+              <td>1 - 4</td>
+              <td>Excellent</td>
+              
+          </tr>
+          <tr style = "background:lightblue">
+              <td>5 - 8</td>
+              <td>Good</td>
+          </tr>
+          <tr>
+              <td>9 - 11</td>
+              <td>Medium</td>
+          </tr>
+          <tr style = "background:lightblue">
+              <td>12 and above</td>
+              <td>Bad</td>
+          </tr>
+        </table>
+    </div>
+    <!-- /content -->
+    <div data-role="content">
+      <button onclick="$.mobile.back();" data-icon="flat-cross" data-theme="e">Go back</button>
+      
+    </div>
+  </div>
+  <!-- /END Visceral PAGE -->
+
+  <!-- Water page -->
+ <div data-role="page" id="water">
+    <div data-role="header" data-position="fixed">
+      <a href="#landing" data-iconpos="notext" data-role="button" data-icon="home" title="Home">Home</a>
+        <h1>Body Water %</h1>
+    </div>
+    <div data-role="content">
+      <p>
+        Total Body Water Percentage is the total amount of fluid in a person's body expressed as a percentage of their total weight.<br><br>
+        Water plays a vital role in many of the body's processes and is found in every cell, tissue and organ.<br><br>
+        Maintaining a healthy total body water percentage will ensure the body functions efficiently and will reduce the 
+        risk of developing associated health problems.
+      </p>
+    
+    </div>
+    <!-- /content -->
+    <div data-role="content">
+      <button onclick="$.mobile.back();" data-icon="flat-cross" data-theme="e">Go back</button>
+      
+    </div>
+  </div>
+  <!-- /END Water PAGE -->
+
+  <!-- BMR page -->
+ <div data-role="page" id="bmr">
+    <div data-role="header" data-position="fixed">
+      <a href="#landing" data-iconpos="notext" data-role="button" data-icon="home" title="Home">Home</a>
+        <h1>BMR</h1>
+    </div>
+    <div data-role="content">
+      <p>
+        Your Basal Metabolic Rate (BMR) is the minimum level of energy your body needs when at rest to function effectively including your respiratory and circulatory organs, neural system, liver, kidneys, and other organs.
+        You burn calories even sleeping.<br><br>
+        About 70% of calories consumed every day are used for your basal metabolism. In addition, energy is used
+        when doing any king of activity however; the more vigorous the activity is the more calories are burned. <br><br>
+        This is because skeletal muscle (which accounts for approximately 40% of your body weight) acts as your metabolic engine
+        and uses a large aount of energy. <br><br>
+        Your basal metabolism is greatly affected by the qyantity of muscles you have, therefore increasing muscle
+        mass will help increase yor basal metabolism. <br><br>
+        By studying healthy individuals, scientists have found that as people age, their metabolic rate chagnes. Basal metabolism rises
+        as a chile matures. After a peak at the age of 16 or 17, it typically starts to decrease gradually. <br> <br>
+        Having a higher basal metabolism will increase the number of calories used and help to decrease the amount of body fat.<br> <br>
+        A low basal metabolic rate will make it harder to lose body fat and overall weight.
+      </p>
+    
+    </div>
+    <!-- /content -->
+    <div data-role="content">
+      <button onclick="$.mobile.back();" data-icon="flat-cross" data-theme="e">Go back</button>
+      
+    </div>
+  </div>
+  <!-- /END bmr PAGE -->
+
+  <!-- muscle page -->
+ <div data-role="page" id="muscle">
+    <div data-role="header" data-position="fixed">
+      <a href="#landing" data-iconpos="notext" data-role="button" data-icon="home" title="Home">Home</a>
+        <h1>Muscle Mass</h1>
+    </div>
+    <div data-role="content">
+      <p>
+        Muscles play and important role as they act as and engine in consuming energy.<br><br>
+        As your muscle mass increases, your energy consumption increases helping you reduce excess body fat
+        levels and lose weight in a healthy way.
+      </p>
+    
+    </div>
+    <!-- /content -->
+    <div data-role="content">
+      <button onclick="$.mobile.back();" data-icon="flat-cross" data-theme="e">Go back</button>
+      
+    </div>
+  </div>
+  <!-- /END muscle PAGE -->
+
+<!-- metabolic page -->
+<div data-role="page" id="metabolic">
+    <div data-role="header" data-position="fixed">
+      <a href="#landing" data-iconpos="notext" data-role="button" data-icon="home" title="Home">Home</a>
+        <h1>Metabolic Age</h1>
+    </div>
+    <div data-role="content">
+      <p>
+        If your BMR age is higher than your actual age, it is an indication that you need to improve your metabolic rate.
+        <br> <br> Increased exercise will build healthy muscle tissue, which will improve your metabolic age.
+      </p>
+    
+    </div>
+    <!-- /content -->
+    <div data-role="content">
+      <button onclick="$.mobile.back();" data-icon="flat-cross" data-theme="e">Go back</button>
+      
+    </div>
+  </div>
+  <!-- /END Metabolic PAGE -->
+
+  <!-- Physique page -->
+<div data-role="page" id="physique">
+  <div data-role="header" data-position="fixed">
+    <a href="#landing" data-iconpos="notext" data-role="button" data-icon="home" title="Home">Home</a>
+      <h1>Physique Rating</h1>
+  </div>
+  <div data-role="content">
+    <p>
+      This feature assesses your physique according to the ration of body fat and muscle mass in your body. <br><br>
+      As you become more active and reduce the amount of body fat, your physique rating will also change accordingly. <br> <br>
+      Even though your weight may not change, your muscle mass and body fat levels may be changing making you healthier, lower risk of certain diseases. <br><br>
+      Each person should set their own goal which physique they would like and follow a diet and fitness program to meet that goal.
+    </p>
+
+    <table width = "100%" cellpadding = "10px" >
+      <tr style = "background:rgb(106, 197, 228);">
+        <td width = "10%">Result</td>
+        <td width = "30%">Physique Rating</td>
+        <td width = "60%">Explanation</td>
+      </tr>
+      <tr>
+          <td>1</td>
+          <td>Hidden Obese</td>
+          <td><b>Small Frame Obese</b> - This person seems to have a healthy body type based on physical however, they have a high body fat % with low muscle mass level.</td>
+      </tr>
+      <tr style = "background:lightblue">
+        <td>2</td>
+        <td>Obese</td>
+        <td><b>Medium Frame Obese</b> - This person has a high body fat percentage with a moderate muscle mass.</td>
+      </tr>
+      <tr>
+        <td>3</td>
+        <td>Solidly Built</td>
+        <td><b>Large Frame Obese</b> - This person has both high body fat % and high muscle mass.</td>
+      </tr>
+      <tr style = "background:lightblue">
+        <td>4</td>
+        <td>Under Exercised</td>
+        <td><b>Low Muscle and Average Body Fat %</b> - This person has an average body fat % and a less than average muscle mass level.</td>
+      </tr>
+      <tr>
+        <td>5</td>
+        <td>Standard</td>
+        <td><b>Average Muscle and Average Body Fat %</b> - This person has an average levels of both body fat and muscle mass.</td>
+      </tr>
+      <tr style = "background:lightblue">
+        <td>6</td>
+        <td>Standard Muscular</td>
+        <td><b>High Muscle and Average Body Fat % (Athlete)</b> - This person has an average body fat % and higher than normal muscle mass level.</td>
+      </tr>
+      <tr>
+        <td>7</td>
+        <td>Thin</td>
+        <td><b>Low Muscle and Low Fat</b> - This person has both lower than normal body fat % and muscle mass levels.</td>
+      </tr>
+      <tr style = "background:lightblue">
+        <td>8</td>
+        <td>Thin and Muscular</td>
+        <td><b>Thin and Muscular (Athlete) </b> - This person has lower than normal body fat % while having adequate muscle mass level.</td>
+      </tr>
+      <tr>
+        <td>9</td>
+        <td>Very Muscular</td>
+        <td><b>Very Muscular (Athlete) </b> - This person has lower than normal body fat % while having above average muscle mass level.</td>
+      </tr>
+    </table>
+
+  </div>
+  <!-- /content -->
+  <div data-role="content">
+    <button onclick="$.mobile.back();" data-icon="flat-cross" data-theme="e">Go back</button>
+    
+  </div>
+</div>
+<!-- /END physique PAGE -->
+
+    <!-- about page -->
+  <div data-role="page" id="about">
+  
+      <div data-role="content">
+        <table>
+          <tr>
+            <td>
+              <img  src="img/john.png" style="width:80%;border-radius: 50%; margin:2px" />
+            </td>
+            <td>
+              <h3>John Joel Saguit </h3> Wellness Coach | App developer</p>
+            </td>
+          </tr>
+          <tr>
+              <td>
+                <img  src="img/faye.png" style="width:80%;border-radius: 50%; margin:2px" />
+              </td>
+              <td>
+                <h3>Faye Angeli Saguit </h3> Wellness Coach | Beautiful wife | John's boss</p>
+              </td>
+            </tr>
+        </table>
+        
+        <!--p align="center">Special credits to Teacher Merianne and Kit Talja for the system.</p -->
+
+        <h4 align="center">Connect with us for FREE online wellness coaching! :)</h4>
+        
+        <p align="center"><a href="mailto:genfitcebu@gmail.com">genfitcebu@gmail.com</a></p>
+        
+        
+      </div>
+      <!-- /content -->
+      <div data-role="content">
+       
+        <button onclick="facebook();" data-icon="flat-heart" data-theme="f">Visit our Facebook</button>
+        
+        <button onclick="goLanding();" data-icon="flat-cross" data-theme="e">Go back</button>
+        
+      </div>
+    </div>
+    <!-- /END about PAGE -->
+  <!-- MAIN PAGE -->
+  <div data-role="page" id="main">
+
+    <div data-role="header" data-position="fixed">
+      <a href="#landing" data-iconpos="notext" data-role="button" data-icon="home" title="Home">Home</a>
+      <button onclick="clearAll()" data-theme="a">Clear</button> 
+
+      <h1>Tanita Details</h1>
+    </div>
+    <!-- /header -->
+
+    <div data-role="content">
+
+      <div data-role="fieldcontain">
+          <table style="width:100%">
+          <tr>
+            <td style="width:90%">
+                <select name="select-choice" id="genderSelect" data-native-menu="false" data-theme="f">
+                    <option value="M">Male</option>
+                    <option value="F">Female</option>
+                  </select>
+            </td>
+            <td style="width:10%">
+                <img id="iconGender" src="img/male.png" style="height:50px; width:50px"/>
+            </td>
+          </tr>
+          </table>
+             
+           
+        </div>
+
+      <!--div data-role="fieldcontain">
+        <label for="formName">Name:</label>
+        <input type="text" name="name" id="formName" value="" />
+      </div>
+
+      <div data-role="fieldcontain">
+        <label for="formNumber">Contact Number:</label>
+        <input type="number" name="number" id="formNumber" value="" />
+      </div -->
+
+      <div data-role="fieldcontain">
+          <label for="formAge">Age (20+):</label>
+          <input type="number" name="age" id="formAge" value="" />
+      </div>
+
+      <div data-role="fieldcontain">
+        <label for="formHeight">Height: </label>(Male 5' and taller, female 4'11" and taller. )
+          <fieldset class="ui-grid-a">
+              <div class="ui-block-a"> <input type="number" placeholder ="Feet" name="feet" id="formHeight" value="" /> </div>
+              <div class="ui-block-b"> <input type="number" placeholder="Inches" name="inches" id="formHeightInches" value="" /></div>
+        </fieldset>
+      </div>
+
+      <div data-role="fieldcontain">
+          <label for="formWeight">Weight:</label>
+         
+          <fieldset class="ui-grid-a">
+                <div class="ui-block-a"> <input type="number" placeholder ="" name="weight" id="formWeight" value="" /> </div>
+                <div class="ui-block-b"> 
+                    <select name="select-choice" id="weightSelect" data-native-menu="false" data-theme="f">
+                      <option value="lbs">lbs</option>
+                      <option value="kg">kg</option>
+                    </select>
+                </div>
+          </fieldset>
+        </div>
+        <div data-role="fieldcontain">
+          <label for="formFat">Body Fat %:</label>
+          <input type="number" name="fat" id="formFat" value="" />
+        </div>
+        <div data-role="fieldcontain">
+          <label for="formVFat">Visceral Fat:</label>
+          <input type="number" name="vfat" id="formVFat" value="" />
+        </div>
+        <div data-role="fieldcontain">
+          <label for="formBoneMass">Bone Mass:</label>
+          <input type="number" name="bonemass" id="formBoneMass" value="" />
+        </div>
+        <div data-role="fieldcontain">
+          <label for="formRMR">Resting Metabolic Rate:</label>
+          <input type="number" name="rmr" id="formRMR" value="" />
+        </div>
+        <div data-role="fieldcontain">
+          <label for="formMetabolicAge">Metabolic Age:</label>
+          <input type="number" name="metabolicage" id="formMetabolicAge" value="" />
+        </div>
+        <div data-role="fieldcontain">
+          <label for="formMuscleMass">Muscle Mass:</label>
+          <input type="number" name="musclemass" id="formMuscleMass" value="" />
+        </div>
+        <div data-role="fieldcontain">
+          <label for="formPhysiqueRating">Physique Rating:</label>
+          <input type="number" name="physiquerating" id="formPhysiqueRating" value="" />
+        </div>
+        <div data-role="fieldcontain">
+          <label for="formWater">Water Percentage:</label>
+          <input type="number" name="water" id="formWater" value="" />
+        </div>
+        <div data-role="fieldcontain">
+          <label for="formWaistline">Waistline:</label>
+          <input type="number" name="wastline" id="formWaistline" value="" />
+        </div>
+        <!--div data-role="fieldcontain">
+          <label for="formRemarks">Remarks:</label>
+          <input type="text" name="remarks" id="formRemarks" value="" />
+        </div-->
+       <button onclick="doMagic()" data-icon="flat-heart" data-theme="g">Do the magic!</button> 
+        
+    </div>
+    <!-- /content -->
+
+  </div>
+  <!-- /END MAIN PAGE -->
+
+  <!-- MAIN 2 PAGE -->
+  <div data-role="page" id="main2">
+
+    <div data-role="header" data-position="fixed">
+      <a href="#landing" data-iconpos="notext" data-role="button" data-icon="home" title="Home">Home</a>
+      <button onclick="clearAll2()" data-theme="a">Clear</button> 
+
+      <h1>Client Details</h1>
+    </div>
+    <!-- /header -->
+
+    <div data-role="content">
+
+      <div data-role="fieldcontain">
+        <table style="width:100%">
+          <tr>
+            <td style="width:90%">
+                <select name="select-choice" id="genderSelect2" data-native-menu="false" data-theme="f">
+                    <option value="M">Male</option>
+                    <option value="F">Female</option>
+                  </select>
+            </td>
+            <td style="width:10%">
+                <img id="iconGender2" src="img/male.png" style="height:50px; width:50px"/>
+            </td>
+          </tr>
+        </table>
+      </div>
+
+      <!--div data-role="fieldcontain">
+        <label for="formName">Name:</label>
+        <input type="text" name="name" id="formName" value="" />
+      </div>
+
+      <div data-role="fieldcontain">
+        <label for="formNumber">Contact Number:</label>
+        <input type="number" name="number" id="formNumber" value="" />
+      </div -->
+
+      <div data-role="fieldcontain">
+          <label for="formAge2">Age (20+):</label>
+          <input type="number" name="age" id="formAge2" value="" />
+      </div>
+
+      <div data-role="fieldcontain">
+        <label for="formHeight2">Height:</label>(Male 5'2" and taller, female 4'11" and taller. )
+          <fieldset class="ui-grid-a">
+              <div class="ui-block-a"> <input type="number" placeholder ="Feet" name="feet" id="formHeight2" value="" /> </div>
+              <div class="ui-block-b"> <input type="number" placeholder="Inches" name="inches" id="formHeightInches2" value="" /></div>
+        </fieldset>
+      </div>
+
+      <div data-role="fieldcontain">
+          <label for="formWeight2">Weight:</label>
+        
+          <fieldset class="ui-grid-a">
+                <div class="ui-block-a"> <input type="number" placeholder ="" name="weight" id="formWeight2" value="" /> </div>
+                <div class="ui-block-b"> 
+                    <select name="select-choice" id="weightSelect2" data-native-menu="false" data-theme="f">
+                      <option value="lbs">lbs</option>
+                      <option value="kg">kg</option>
+                    </select>
+                </div>
+          </fieldset>
+        </div>
+        <!-- put question mark tooltip -->
+        <div data-role="fieldcontain">
+          <label for="activitySelect2">Activity Level: 
+              <a href="#popupInfo" data-rel="popup" data-transition="pop" data-role="button" data-icon="flat-eye" data-iconpos="notext" data-theme="e" data-inline="true">About</a>
+      
+            <div data-role="popup" id="popupInfo" class="ui-content" data-theme="b" style="max-width:350px;">
+                <a href="#" data-role="button" data-rel="back" data-icon="flat-cross" data-iconpos="notext" data-theme="d" data-inline="true">Cross</a>
+              <p>Sedentary (little to no exercise) <br><br>
+                Lightly Active (light exercise/sports 1-3 days/week) <br><br>
+                Moderately Active (moderate exercise/sports 3-5 days/week) <br><br>
+                Very Active (hard exercise/sports 6-7 days a week) <br><br>
+                Extremely Active (very heavy exercise/ physical job/ training twice a day) <br><br>
+                Hot tip: Many people over-estimate their activity levels. For optimum weight loss results, you should select your minimum weekly activity level, rather than your maximum or average. And, if in doubt, choose ‘sedentary' </p>
+            </div>
+          </label><br>
+
+          <select name="select-choice" id="activitySelect2" data-native-menu="false" data-theme="f">
+            <option value="1.2">Sedentary</option>
+            <option value="1.375">Lightly Active</option>
+            <option value="1.55">Moderately Active</option>
+            <option value="1.725">Very Active</option>
+            <option value="1.9">Extremely Active</option>
+          </select>
+        </div>
+
+        <div data-role="fieldcontain">
+          <label for="formWaistline">Waistline:</label>
+          <input type="number" name="wastline" id="formWaistline2" value="" />
+        </div>
+        <!--div data-role="fieldcontain">
+          <label for="formRemarks">Remarks:</label>
+          <input type="text" name="remarks" id="formRemarks" value="" />
+        </div-->
+      <button onclick="doMagic2()" data-icon="flat-heart" data-theme="g">Do the magic!</button> 
+        
+    </div>
+    <!-- /content -->
+
+  </div>
+  <!-- /END MAIN  2 PAGE -->  
+
+  <!-- RESULTS PAGE -->
+  <div data-role="page" id="results">
+
+      <div data-role="header" data-position="fixed">
+         <h1>Results</h1>
+      </div>
+      <!-- /header -->
+  
+      <div data-role="content" id="resultContent">
+        
+       
+      </div>
+      <!-- /content -->
+      <div data-role="content">
+          <fieldset class="ui-grid-a">
+            <div class="ui-block-a">
+              <button onclick="copyMagic()" data-icon="flat-new" data-theme="f">Copy</button>
+            
+            </div>
+            <div class="ui-block-b">
+                <button onclick="goMeal()" data-icon="flat-heart" data-theme="d">Meal Plan</button>
+            </div>
+          </fieldset>
+          <fieldset class="ui-grid-a">
+            <!--div class="ui-block-a">
+               <button onclick="saveUser()" data-icon="flat-plus" data-theme="b">Save</button>
+           
+            </div-->
+            <div class="ui-block-b">
+                <button onclick="$.mobile.back();" data-icon="flat-cross" data-theme="e">Go Back</button>
+             
+                 </div>
+            <div data-role="popup" id="copyPop1" data-theme="b" data-overlay-theme="a">
+              <p>Text copied to clipboard.</p>
+            </div>
+          </fieldset>
+        </div>
+    </div>
+    <!-- /END RESULTS PAGE -->
+
+    <!-- Meal PAGE -->
+    <div data-role="page" id="meal">
+  
+      <div data-role="header" data-position="fixed">
+        <h1>NC Operation</h1>
+      </div>
+      <!-- /header -->
+  
+      <div data-role="content">
+        <p>Select Nutrition Club /shake meal time.</p>
+        <button onclick="getPlan('a')" data-theme="b">Breakfast</button>
+        <button onclick="getPlan('b')" data-theme="d">Lunch</button>
+        <button onclick="getPlan('c')" data-theme="f">Dinner</button>
+        <br>
+        <button onclick="$.mobile.back();" data-icon="flat-cross" data-theme="e">Go back</button>
+      </div>
+      <!-- /content -->
+  
+    </div>
+    <!-- /END meal PAGE -->
+    <div data-role="page" id="followup">
+        <div data-role="header" data-position="fixed">
+            <h1>Follow-Up</h1>
+          </div>
+          <!-- /header -->
+          <div data-role="content">
+              <ul data-role="listview" data-inset="true" id="followuplist">
+                  <!--li><a href="index.html">
+                  <img src="images/album-bb.jpg" />
+                  <h3>Broken Bells</h3>
+                  <p>Broken Bells</p>
+                  </a><a href="lists-split-purchase.html" data-rel="dialog" data-transition="slideup">Purchase album
+                </a></li>
+                <li><a href="index.html">
+                  <img src="images/album-hc.jpg" />
+                  <h3>Warning</h3>
+                  <p>Hot Chip</p>
+                </a><a href="lists-split-purchase.html" data-rel="dialog" data-transition="slideup">Purchase album
+                </a></li>
+                <li><a href="index.html">
+                  <img src="images/album-p.jpg" />
+                  <h3>Wolfgang Amadeus Phoenix</h3>
+                  <p>Phoenix</p>
+                  </a><a href="lists-split-purchase.html" data-rel="dialog" data-transition="slideup">Purchase album
+                </a></li-->
+                </ul>
+          </div>
+        
+
+    </div>
+    <!-- meal plan result PAGE -->
+    <div data-role="page" id="mealresults">
+
+        <div data-role="header" data-position="fixed">
+          <h1>Meal Plan</h1>
+        </div>
+        <!-- /header -->
+        <div data-role="content" >
+          <select name="select-choice" id="calorieSelect" data-native-menu="false" data-theme="f">
+            <option value="1000">1000 cal/day</option>
+            <option value="1100">1100 cal/day</option>
+            <option value="1200">1200 cal/day</option>
+            <option value="1300">1300 cal/day</option>
+            <option value="1400">1400 cal/day</option>
+            <option value="1500">1500 cal/day</option>
+            <option value="1600">1600 cal/day</option>
+            <option value="1700">1700 cal/day</option>
+            <option value="1800">1800 cal/day</option>
+            <option value="1900">1900 cal/day</option>
+            <option value="2000">2000 cal/day</option>
+            <option value="2100">2100 cal/day</option>
+          </select>
+        
+        </div>
+        
+        <div data-role="content" id="mealContent">
+        
+        </div>
+        <!-- /content -->
+        <div data-role="content">
+            <h4>Notes:</h4>
+            <p>1. Drink 12-14 glasses of water. <br>
+               2. No pork and beef. <br>
+               3. Don't worry about the vegetables. It's all in the shake. <br>
+               4. Follow the meal plan.</p>
+            <fieldset class="ui-grid-a">
+                <div class="ui-block-a">
+                    <button onclick="copyMagic2()" data-icon="flat-new" data-theme="f">Copy</button>
+                    <button onclick="$.mobile.back();" data-icon="flat-cross" data-theme="e">Go Back</button>
+              
+                </div>
+                <div class="ui-block-b">
+                    <button onclick="goLanding();" data-icon="check" data-theme="g">Done!</button>
+        
+                 </div>
+              </fieldset>
+          <div data-role="popup" id="copyPop2" data-theme="b" data-overlay-theme="a">
+              <p>Text copied to clipboard.</p>
+            </div>
+          </div>
+      </div>
+      <!-- /END RESULTS PAGE -->
+
+  </body>
+
+</html>
